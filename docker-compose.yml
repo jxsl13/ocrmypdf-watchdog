@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+  ocrmypdf-watchdog:
+    container_name: ocrmypdf-watchdog
+    user: ":100" # needs testing
+    build: .
+    image: jxsl13/ocrmypdf-watchdog
+    environment: 
+      PUID: 1024    # target user ID
+      PGID: 100     # target group ID
+      OCRMYPDF_ARGS: --pdf-renderer sandwich --tesseract-timeout 1800 --rotate-pages -l eng+fra+deu --deskew --clean --skip-text
+      volumes: 
+        #- /etc/localtime:/etc/localtime:ro
+        - ~/Desktop/in:/in
+        - ~/Desktop/out:/out
+    network_mode: none
+    restart: unless-stopped
