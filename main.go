@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/google/uuid"
 )
 
 // Config parameters
@@ -49,6 +50,31 @@ var (
 	knownGIDs = []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "13", "15", "20", "21", "22", "24", "25", "26", "27", "29", "30", "33", "34", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "50", "60", "100", "65534"}
 )
 
+func generateString() string {
+	uuid := uuid.New().String()
+	return strings.Replace(uuid, "-", "", -1)[:32]
+}
+
+func printInfo(filePath string) {
+	info, err := os.Stat(filePath)
+
+	if err != nil {
+		log.Printf("Failed to open %q, %q", filePath, err)
+		return
+	}
+
+	isDir := info.IsDir()
+	log.Println("============================== Info ==============================")
+	if isDir {
+		log.Println("Permissions of folder: ", filePath)
+	} else {
+		log.Println("Permissions of file: ", filePath)
+	}
+
+	log.Println("\tPerm:", info.Mode().Perm())
+	log.Println("\tSys:", info.Sys())
+}
+
 func init() {
 
 	gid := os.Getenv("PGID")
@@ -60,12 +86,12 @@ func init() {
 	}
 
 	if !contains(gid, knownGIDs) {
-		cmd := exec.Command("addgroup", "--gid", gid, "ysxdcgfhvgbjknlm")
+		cmd := exec.Command("addgroup", "--gid", gid, generateString())
 		output, err := cmd.CombinedOutput()
 
 		log.Println(string(output))
 		if err != nil {
-			log.Fatal("error creating group:", err)
+			log.Println("error creating group:", err)
 		}
 	}
 	cfg.PGID = igid
@@ -79,12 +105,12 @@ func init() {
 	}
 
 	if !contains(uid, knownUIDs) {
-		cmd := exec.Command("adduser", "--no-create-home", "--disabled-password", "--uid", uid, "--gid", gid, "--gecos", "\"\"", "ysxfdgcfhvgjbkngdx")
+		cmd := exec.Command("adduser", "--no-create-home", "--disabled-password", "--uid", uid, "--gid", gid, "--gecos", "\"\"", generateString())
 		output, err := cmd.CombinedOutput()
 
 		log.Println(string(output))
 		if err != nil {
-			log.Fatal("error creating user:", err)
+			log.Println("error creating user:", err)
 		}
 	}
 	cfg.PUID = iuid
@@ -99,6 +125,7 @@ func init() {
 	log.Printf("\tGID: %d\n", cfg.PGID)
 	log.Println("OCRmyPDF command:")
 	log.Printf("\t%s %s\n", cfg.OCRmyPDFExecutable, cfg.OCRmyPDFArgs)
+	printInfo("/out/")
 	log.Println("===================================")
 }
 
@@ -155,6 +182,8 @@ func processFile(filePath string) {
 	// big part taken from https://github.com/bernmic/ocrmypdf-watchdog/blob/5437c1827298c7223d754819d644b95dd9ddd605/main.go#L92
 
 	log.Println("Processing file " + filePath)
+	printInfo(filePath)
+
 	// first get the parts of the path: dir+filename+ext
 	directory := filepath.Dir(filePath)
 	filename := filepath.Base(filePath)
@@ -201,12 +230,15 @@ func processFile(filePath string) {
 		final := targetWithoutExtension + ".pdf"
 		os.Rename(target, final)
 
+		printInfo(final)
+
 		// set external
 		err = os.Chown(final, cfg.PUID, cfg.PGID)
-
 		if err != nil {
 			log.Println("Failed to change owner:", err)
+			return
 		}
+
 	}
 }
 
