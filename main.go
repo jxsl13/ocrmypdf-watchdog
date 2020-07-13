@@ -231,6 +231,7 @@ func processFile(filePath string) {
 		os.Rename(target, final)
 
 		printInfo(final)
+		printInfo("/out/visible.jpg")
 
 		// set external
 		err = os.Chown(final, cfg.PUID, cfg.PGID)
