@@ -15,5 +15,6 @@ services:
       - /volume1/Scans/alexander:/in
       - /volume1/homes/alexander/Drive/Scans:/out
     network_mode: none
+    mem_limit: 1024m
     cpu_percent: 25
     restart: unless-stopped
