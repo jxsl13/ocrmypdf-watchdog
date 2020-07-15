@@ -64,7 +64,7 @@ func NewConfig() Config {
 	if !contains(gid, knownGIDs) {
 
 		// generate groupname from a UUID (nearly impossible to have two groups with the same name)
-		groupName := generateString()
+		groupName := generateRandomGroup()
 
 		// execute linux command to add a new group with given GID
 		cmd := exec.Command("addgroup", "--gid", gid, groupName)
@@ -96,7 +96,7 @@ func NewConfig() Config {
 	if !contains(uid, knownUIDs) {
 
 		// create unique username
-		userName := generateString()
+		userName := generateRandomUser()
 
 		// create user & add to previously created group
 		cmd := exec.Command("adduser", "--no-create-home", "--disabled-password", "--uid", uid, "--gid", gid, "--gecos", "\"\"", userName)
