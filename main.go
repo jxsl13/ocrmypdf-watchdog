@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -11,6 +13,17 @@ var (
 	cfg             = NewConfig()
 	errFileNotFound = errors.New("File not found")
 )
+
+func init() {
+
+	// allowed flags
+	if flags, err := strconv.Atoi(os.Getenv("LOG_FLAGS")); err == nil && 0 <= flags && flags < 64 {
+		log.SetFlags(flags)
+	} else {
+		log.SetFlags(0)
+	}
+
+}
 
 func main() {
 	watcher, err := fsnotify.NewWatcher()

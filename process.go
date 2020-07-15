@@ -70,7 +70,11 @@ func processFile(filePath string) {
 			return
 		}
 		printInfo(final)
-		os.Chmod(final, 0002)
+		err = os.Chmod(final, 0777)
+		if err != nil {
+			log.Println("Failed to change file permissions:", err)
+			return
+		}
 		printInfo(final)
 
 	}
