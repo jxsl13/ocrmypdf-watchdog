@@ -2,7 +2,7 @@ FROM golang:latest as build
 
 LABEL maintainer "jxsl13@gmail.com"
 WORKDIR /build
-COPY main.go .
+COPY *.go .
 COPY go.mod .
 COPY go.sum .
 RUN go get -d && \
