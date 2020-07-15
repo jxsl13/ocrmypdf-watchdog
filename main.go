@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/google/uuid"
@@ -73,6 +74,20 @@ func printInfo(filePath string) {
 
 	log.Println("\tPerm:", info.Mode().Perm())
 	log.Println("\tSys:", info.Sys())
+
+	var UID int
+	var GID int
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		UID = int(stat.Uid)
+		GID = int(stat.Gid)
+	} else {
+		// we are not in linux, this won't work anyway in windows,
+		// but maybe you want to log warnings
+		UID = os.Getuid()
+		GID = os.Getgid()
+	}
+	log.Println("\tUID", UID)
+	log.Println("\tGID", GID)
 }
 
 func init() {
