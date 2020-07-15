@@ -256,7 +256,7 @@ func processFile(filePath string) {
 			return
 		}
 		printInfo(final)
-		os.Chmod(final, 0777)
+		os.Chmod(final, 0002)
 		printInfo(final)
 
 	}
