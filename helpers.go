@@ -17,7 +17,7 @@ func generateString(prefix string) string {
 }
 
 func generateRandomUser() string {
-	generateString("u")
+	return generateString("u")
 }
 
 func generateRandomGroup() string {
