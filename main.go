@@ -247,15 +247,17 @@ func processFile(filePath string) {
 		final := targetWithoutExtension + ".pdf"
 		os.Rename(target, final)
 
-		printInfo(final)
 		printInfo("/out/visible.jpg")
-
+		printInfo(final)
 		// set external
 		err = os.Chown(final, cfg.PUID, cfg.PGID)
 		if err != nil {
 			log.Println("Failed to change owner:", err)
 			return
 		}
+		printInfo(final)
+		os.Chmod(final, 0777)
+		printInfo(final)
 
 	}
 }
