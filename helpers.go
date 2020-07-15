@@ -30,7 +30,7 @@ func fileInfo(filePath string) (string, error) {
 	} else {
 		sb.WriteString("Permissions of file: ")
 	}
-	sb.WriteString(filePath)
+	sb.WriteString(fmt.Sprintf("%q", filePath))
 	sb.WriteString("\n")
 
 	sb.WriteString("\tPerm: ")
