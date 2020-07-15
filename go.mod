@@ -1,4 +1,4 @@
-module github.com/jxsl13/test
+module github.com/jxsl13/ocrmypdf-watchdog
 
 go 1.13
 
