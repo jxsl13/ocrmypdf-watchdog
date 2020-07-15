@@ -86,8 +86,8 @@ func printInfo(filePath string) {
 		UID = -1
 		GID = -1
 	}
-	log.Println("\tUID", UID)
-	log.Println("\tGID", GID)
+	log.Println("\tUID:", UID)
+	log.Println("\tGID:", GID)
 }
 
 func init() {
