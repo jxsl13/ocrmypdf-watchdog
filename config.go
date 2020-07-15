@@ -124,9 +124,7 @@ func NewConfig() Config {
 func (cfg *Config) String() string {
 	sb := strings.Builder{}
 
-	sb.WriteString("========== Configuration ==========\nOwner of output file:")
-	sb.WriteString(fmt.Sprintf("\tUID: %d\n", cfg.UID))
-	sb.WriteString(fmt.Sprintf("\tGID: %d\n", cfg.GID))
+	sb.WriteString("========== Configuration ==========\n")
 	sb.WriteString("OCRmyPDF command:\n")
 	sb.WriteString(fmt.Sprintf("\t%s %s\n", cfg.OCRmyPDFExecutable, cfg.OCRmyPDFArgs))
 
