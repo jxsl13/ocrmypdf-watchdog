@@ -83,8 +83,8 @@ func printInfo(filePath string) {
 	} else {
 		// we are not in linux, this won't work anyway in windows,
 		// but maybe you want to log warnings
-		UID = os.Getuid()
-		GID = os.Getgid()
+		UID = -1
+		GID = -1
 	}
 	log.Println("\tUID", UID)
 	log.Println("\tGID", GID)
