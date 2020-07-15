@@ -101,12 +101,13 @@ func init() {
 	}
 
 	if !contains(gid, knownGIDs) {
-		cmd := exec.Command("addgroup", "--gid", gid, generateString())
+		groupName := generateString()
+		cmd := exec.Command("addgroup", "--gid", gid, groupName)
 		output, err := cmd.CombinedOutput()
 
 		log.Println(string(output))
 		if err != nil {
-			log.Println("error creating group:", err)
+			log.Println("error creating group:", groupName, "error:", err)
 		}
 	}
 	cfg.PGID = igid
@@ -120,12 +121,13 @@ func init() {
 	}
 
 	if !contains(uid, knownUIDs) {
-		cmd := exec.Command("adduser", "--no-create-home", "--disabled-password", "--uid", uid, "--gid", gid, "--gecos", "\"\"", generateString())
+		userName := generateString()
+		cmd := exec.Command("adduser", "--no-create-home", "--disabled-password", "--uid", uid, "--gid", gid, "--gecos", "\"\"", userName)
 		output, err := cmd.CombinedOutput()
 
 		log.Println(string(output))
 		if err != nil {
-			log.Println("error creating user:", err)
+			log.Println("error creating user:", userName, "error:", err)
 		}
 	}
 	cfg.PUID = iuid
