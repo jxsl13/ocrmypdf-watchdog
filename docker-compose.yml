@@ -3,7 +3,7 @@ version: '2'
 services:
   ocrmypdf-watchdog:
     container_name: ocrmypdf-watchdog
-    user: ":100" # needs testing
+    #user: "1030:100" # needs testing
     build: .
     #image: jxsl13/ocrmypdf-watchdog
     environment: 
