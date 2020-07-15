@@ -38,3 +38,33 @@ Only proper PDF files are actually OCR'ed and then put into the target `out` dir
 - Needs to be tested on the actual Synology Diskstation target.
 - Check if permissions are correct
 - Support either multiple volumes or one valume with individual subfolders instead of having to have one container per user(kinda hefty with its 500MB).
+
+## Additional Environment variables
+
+Additional environment variables that are not necessarily needed.
+
+### LOG_FLAGS
+
+Integer value between 0 and 63
+
+#### Possible values
+
+```go
+const (
+    Ldate         = 1           // the date in the local time zone: 2009/01/23
+    Ltime         = 2           // the time in the local time zone: 01:23:23
+    Lmicroseconds = 4           // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+    Llongfile     = 8           // full file name and line number: /a/b/c/d.go:23
+    Lshortfile    = 16          // final file name element and line number: d.go:23. overrides Llongfile
+    LUTC          = 32          // if Ldate or Ltime is set, use UTC rather than the local time zone
+    LstdFlags     = Ldate + Ltime// initial values for the standard logger
+)
+```
+
+#### Example
+
+```yamp
+# Ldate + Ltime = 3
+LOG_FLAGS: 3 # results in the log output '2020/07/15 14:55:56 Job finished with result successfully.'
+
+```
