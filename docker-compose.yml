@@ -4,8 +4,8 @@ services:
   ocrmypdf-watchdog:
     container_name: ocrmypdf-watchdog
     user: ":100" # needs testing
-    #build: .
-    image: jxsl13/ocrmypdf-watchdog
+    build: .
+    #image: jxsl13/ocrmypdf-watchdog
     environment: 
       PUID: 1030    # target user ID
       PGID: 100     # target group ID
