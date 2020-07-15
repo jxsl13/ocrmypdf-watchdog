@@ -12,7 +12,7 @@ import (
 
 func generateString() string {
 	uuid := uuid.New().String()
-	return strings.Replace(uuid, "-", "", -1)[:32]
+	return strings.ToLower(strings.TrimSpace(strings.Replace(uuid, "-", "", -1)[:30]))
 }
 
 func fileInfo(filePath string) (string, error) {
