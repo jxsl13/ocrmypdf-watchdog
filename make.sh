@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 sudo docker-compose build --force-rm --no-cache 
 sudo docker-compose up -d
