@@ -74,7 +74,7 @@ func printInfo(filePath string) {
 
 	lines := strings.Split(info, "\n")
 
-	for line := range lines {
+	for _, line := range lines {
 		log.Println(line)
 	}
 }
