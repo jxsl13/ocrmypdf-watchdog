@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker-compose build --force-rm --no-cache 
-docker-compose up -d
-docker ps
+sudo docker-compose build --force-rm --no-cache 
+sudo docker-compose up -d
+sudo docker ps
 sleep 5
-docker logs ocrmypdf-watchdog
+sudo docker logs ocrmypdf-watchdog
