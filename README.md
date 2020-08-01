@@ -33,11 +33,16 @@ You will be *WARNED* before continuing with the cleanup.
 *Write* and *Create* events trigger the new file in the `in` directory to be checked for their file type.
 Only proper PDF files are actually OCR'ed and then put into the target `out` directory.
 
+## Problems
+
+Contacting the Synology support resulted in the Synology Drive app not actually supporting such constllations, making it impossible to give those files the proper permissions from within the docker contains (FOR NOW).
+I think it might be possible if the scanner actually uses the target user's credentials (not really what I hoped for) in order to scan documents into a folder that is owned by that target user.
+
 ## TODO
 
 - Needs to be tested on the actual Synology Diskstation target.
 - Check if permissions are correct
-- Support either multiple volumes or one valume with individual subfolders instead of having to have one container per user(kinda hefty with its 500MB).
+- Support either multiple volumes or one volume with individual subfolders instead of having to have one container per user(kinda hefty with its 500MB).
 
 ## Additional Environment variables
 
