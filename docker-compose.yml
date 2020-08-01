@@ -3,18 +3,18 @@ version: '2.2'
 services:
   ocrmypdf-watchdog:
     container_name: ocrmypdf-watchdog
-    #user: "1030:100" # needs testing
-    build: .
-    #image: jxsl13/ocrmypdf-watchdog
+    #user: "1030:100" # can be used, must not be used.
+    #build: .
+    image: jxsl13/ocrmypdf-watchdog
     environment: 
       PUID: 1030    # target user ID
       PGID: 100     # target group ID
       OCRMYPDF_ARGS: --pdf-renderer sandwich --tesseract-timeout 1800 --rotate-pages -l eng+fra+deu --deskew --clean --skip-text
     volumes: 
       #- /etc/localtime:/etc/localtime:ro
-      - /volume1/Scans/alexander:/in
-      - /volume1/homes/alexander/Drive/Scans:/out
+      - /volume1/homes/<USER>/Scans:/in
+      - /volume1/homes/<USER>/Documemts:/out
     network_mode: none
-    #mem_limit: 1024m
-    #cpu_percent: 25
+    #mem_limit: 1024m     # limit RAM usage
+    #cpu_percent: 25      # limit CPU usage
     restart: unless-stopped
