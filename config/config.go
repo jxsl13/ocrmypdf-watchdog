@@ -55,37 +55,44 @@ func Close() {
 }
 
 type config struct {
-	InDir              string
-	OutDir             string
-	UID                int // uid
-	GID                int // gid
-	Chmod              uint32
-	LogFlags           int
+	LogFlags int
+
+	InDir  string
+	OutDir string
+
 	OCRMyPDFExecutable string
 	OCRMyPDFArgs       []string
 	OCRMyPDFArgsString string
-	ctx                context.Context
 
+	UID   int // uid
+	GID   int // gid
+	Chmod uint32
+
+	ctx     context.Context
 	watcher *fsnotify.Watcher
 }
 
+// Context may be used to check the moment when the application is closed
 func (c *config) Context() context.Context {
 	return c.ctx
 }
 
+// Watcher returns the initialized watcher that may be used to listen for file system events in the
+// input directore (not recursive, so only to level changes in the directory are )
 func (c *config) Watcher() *fsnotify.Watcher {
 	return c.watcher
 }
 
+// String returns a string representation of the
 func (c *config) String() string {
 	sb := strings.Builder{}
 
 	sb.WriteString("========== Configuration ==========\n")
-	sb.WriteString("OCRmyPDF command:\n")
+	sb.WriteString("ocrmypdf command:\n")
 	sb.WriteString(fmt.Sprintf("\t%s %s\n", c.OCRMyPDFExecutable, c.OCRMyPDFArgsString))
 
-	inInfo, _ := internal.FileInfo("/in/")
-	outInfo, _ := internal.FileInfo("/out")
+	inInfo, _ := internal.FileInfo(c.InDir)
+	outInfo, _ := internal.FileInfo(c.OutDir)
 	sb.WriteString(inInfo)
 	sb.WriteString(outInfo)
 
@@ -185,6 +192,10 @@ func (c *config) Options() configo.Options {
 		{
 			Key: "initialize context which is closed upon an yof the signals",
 			PostParseAction: func() error {
+				// in case the application receives one of these signals,
+				// the context is closed
+				// anything listening on the context.Done() channel will
+				// be able to fetch the signal from that channel
 				c.ctx, _ = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 				return nil
 			},
