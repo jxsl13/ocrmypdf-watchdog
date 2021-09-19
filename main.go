@@ -42,16 +42,13 @@ func main() {
 				return
 			}
 
-			if event.Op&fsnotify.Write == fsnotify.Write ||
-				event.Op&fsnotify.Create == fsnotify.Create {
-
+			if event.Op&fsnotify.Create == fsnotify.Create {
 				filePath := event.Name
-				log.Println("file:", filePath)
-
-				if !IsExist(filePath) || !IsPDF(filePath) {
+				if !IsPDF(filePath) {
 					continue
 				}
 				// process file
+				log.Println(event.Op.String(), ": file:", filePath)
 				jobs <- filePath
 			}
 

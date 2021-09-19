@@ -3,10 +3,12 @@ package config
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -57,8 +59,9 @@ func Close() {
 type config struct {
 	LogFlags int
 
-	InDir  string
-	OutDir string
+	InDir     string
+	OutDir    string
+	FailedDir string
 
 	OCRMyPDFExecutable string
 	OCRMyPDFArgs       []string
@@ -72,6 +75,40 @@ type config struct {
 	watcher *fsnotify.Watcher
 
 	NumWorkers int // number of goroutines processing files
+}
+
+func (c *config) TargetFilePermissions(sourceFile string) (uid int, gid int, chmod fs.FileMode, err error) {
+	info, err := os.Stat(sourceFile)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	var UID, GID int
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		UID = int(stat.Uid)
+		GID = int(stat.Gid)
+	} else {
+		// we are not in linux, this won't work anyway in windows,
+		// but maybe you want to log warnings
+		UID = -1
+		GID = -1
+	}
+
+	mode := info.Mode()
+
+	if c.UID >= 0 {
+		UID = c.UID
+	}
+
+	if c.GID >= 0 {
+		GID = c.GID
+	}
+
+	if c.Chmod > 0 {
+		mode = fs.FileMode(c.Chmod)
+	}
+
+	return UID, GID, mode, nil
 }
 
 // Context may be used to check the moment when the application is closed
@@ -142,11 +179,22 @@ func (c *config) Options() configo.Options {
 			PostParseAction: dirMustExist(&c.OutDir),
 		},
 		{
+			Key:           "FAILED_DIR_NAME",
+			DefaultValue:  "failed",
+			ParseFunction: parsers.String(&c.FailedDir),
+			PostParseAction: func() error {
+				// create full path in input directory
+				c.FailedDir = path.Join(c.InDir, c.FailedDir)
+				return nil
+			},
+		},
+		{
 			Key:           "PGID",
-			DefaultValue:  "100",
+			DefaultValue:  "-1",
+			Description:   "set this value to >= 0 in order to force a specific user group id for the resulting file",
 			ParseFunction: parsers.Int(&c.GID),
 			PostParseAction: func() error {
-				if contains(c.GID, knownGIDs) {
+				if c.GID < 0 || contains(c.GID, knownGIDs) {
 					return nil
 				}
 
@@ -162,10 +210,11 @@ func (c *config) Options() configo.Options {
 		},
 		{
 			Key:           "PUID",
-			DefaultValue:  "1000",
+			DefaultValue:  "-1",
+			Description:   "set this value to >= 0 in order to force a user id for the resulting file",
 			ParseFunction: parsers.Int(&c.UID),
 			PostParseAction: func() error {
-				if contains(c.UID, knownUIDs) {
+				if c.UID < 0 || contains(c.UID, knownUIDs) {
 					return nil
 				}
 				// we 'need' to create a new user in the container with the given group id
@@ -188,7 +237,8 @@ func (c *config) Options() configo.Options {
 		},
 		{
 			Key:           "CHMOD",
-			DefaultValue:  "0600",
+			DefaultValue:  "0000",
+			Description:   "set this value to > 0000 in order to force specific file permissions (chmod) for the resulting file",
 			ParseFunction: OctalInt(&c.Chmod),
 		},
 		{

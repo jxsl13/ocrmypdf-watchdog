@@ -4,19 +4,31 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 // IsExist checks is a file or directory exists
-func IsExist(filePath string) bool {
-	_, err := os.Stat(filePath)
+func IsExistingFile(filePath string) bool {
+	info, err := os.Stat(filePath)
 	if err != nil && os.IsNotExist(err) {
 		return false
 	}
-	return true
+
+	return !info.IsDir()
 }
 
 // IsPDF checks the content type of the file.
 func IsPDF(filePath string) bool {
+	// file name must end with .pdf
+	if strings.ToLower(filepath.Ext(filePath)) != ".pdf" {
+		return false
+	}
+
+	if !IsExistingFile(filePath) {
+		return false
+	}
+
 	contentType, err := GetFileContentType(filePath)
 	if err != nil {
 		log.Println("file type error:", err)

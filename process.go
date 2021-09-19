@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -15,19 +16,30 @@ import (
 
 func processFile(filePath string) {
 
-	cfg := config.New()
-
 	log.Println("Processing file: " + filePath)
+
+	cfg := config.New()
+	uid, gid, perm, err := cfg.TargetFilePermissions(filePath)
+	if err != nil {
+		log.Printf("failed to fetch file permissions: %s\n", err)
+		return
+	}
 	internal.PrintInfo(filePath)
 
 	// first get the parts of the path: (dir)+(filename)+(.ext)
-	directory := filepath.Dir(filePath)
-	filename := filepath.Base(filePath)
-	extension := filepath.Ext(filename)
-	filename = filename[0 : len(filename)-len(extension)]
+	//directory := filepath.Dir(filePath)
+	filename := filepath.Base(filePath)                   // file name without directories
+	failedFilePath := path.Join(cfg.FailedDir, filename)  // failed dir + original file name
+	extension := filepath.Ext(filename)                   // file extension
+	filename = filename[0 : len(filename)-len(extension)] // remove file extension
+
+	target := cfg.OutDir
+	if !strings.HasSuffix(target, "/") {
+		target = target + "/"
+	}
 
 	// try to create temp file that can be used
-	tmpFile, err := ioutil.TempFile(directory, filename+".*"+extension)
+	tmpFile, err := ioutil.TempFile(target, filename+".*"+extension)
 	if err != nil {
 		log.Printf("Unable to create temp file: %v", err)
 		return
@@ -35,21 +47,19 @@ func processFile(filePath string) {
 
 	// close file and delete it
 	tmpFile.Close()
-	os.Remove(tmpFile.Name())
-
-	// move pdf to that tempfile's name
-	err = os.Rename(filePath, tmpFile.Name())
+	err = os.Remove(tmpFile.Name())
 	if err != nil {
-		log.Printf("Cannot rename file: %v", err)
+		log.Printf("failed to remove file %s\n", tmpFile.Name())
+	}
+
+	// move pdf to that tempfile's location
+	err = internal.Move(filePath, tmpFile.Name())
+	if err != nil {
+		log.Printf("Cannot move file: %v", err)
 		return
 	}
 	// delete temp file at the end
 	defer os.Remove(tmpFile.Name())
-
-	target := cfg.OutDir
-	if !strings.HasSuffix(target, "/") {
-		target = target + "/"
-	}
 
 	// OCR
 	targetWithoutExtension := target + filename
@@ -65,8 +75,20 @@ func processFile(filePath string) {
 
 	if err != nil {
 		// error: tmp back to original name
-		log.Printf("Job finished failed: %v\n", err)
-		os.Rename(tmpFile.Name(), filePath)
+		log.Printf("Job failed: %v\n", err)
+		// move not OCR'ed file back inpo failed folder
+
+		if !internal.IsExistingDir(cfg.FailedDir) {
+			err := os.MkdirAll(cfg.FailedDir, fs.FileMode(cfg.Chmod))
+			if err != nil {
+				log.Println("failed to create directory: ", cfg.FailedDir)
+			}
+			return
+		}
+		err = internal.Move(tmpFile.Name(), failedFilePath)
+		if err != nil {
+			log.Printf("failed to move file from %s to %s\n", tmpFile.Name(), failedFilePath)
+		}
 	} else {
 		log.Println("Job finished successfully.")
 
@@ -74,21 +96,25 @@ func processFile(filePath string) {
 		final := targetWithoutExtension + ".pdf"
 
 		// OCR'ed target file is renamed to final file
-		os.Rename(target, final)
+		err := os.Rename(target, final)
+		if err != nil {
+			log.Printf("failed to move file from %s to %s\n", target, final)
+			return
+		}
 
 		// set external permissions to user's UID and GID
 		// the problem that also the Synology support was not able to solve, is that
 		// the Synology Drive app cannot properly work with docker files.
 		// this means that a scanner will neccessarily have to use the specific
 		// user's access rights in order to properly copy those pemrissions over.
-		err = os.Chown(final, cfg.UID, cfg.GID)
+		err = os.Chown(final, uid, gid)
 		if err != nil {
 			log.Println("Failed to change owner:", err)
 			return
 		}
 
 		// safe chmod
-		err = os.Chmod(final, fs.FileMode(cfg.Chmod))
+		err = os.Chmod(final, perm)
 		if err != nil {
 			log.Println("Failed to change file permissions:", err)
 			return

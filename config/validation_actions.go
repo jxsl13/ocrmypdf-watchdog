@@ -3,8 +3,8 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
 
+	"github.com/jxsl13/ocrmypdf-watchdog/internal"
 	configo "github.com/jxsl13/simple-configo"
 )
 
@@ -13,18 +13,9 @@ func dirMustExist(dir *string) configo.ActionFunc {
 		if dir == nil {
 			return errors.New("nil pointer pased in dirMustEixst")
 		}
-		if !isExistingDir(*dir) {
+		if !internal.IsExistingDir(*dir) {
 			return fmt.Errorf("directory not found: %s", *dir)
 		}
 		return nil
 	}
-}
-
-// isExist checks is a directory exists
-func isExistingDir(dirPath string) bool {
-	stat, err := os.Stat(dirPath)
-	if err != nil && os.IsNotExist(err) {
-		return false
-	}
-	return stat.IsDir()
 }

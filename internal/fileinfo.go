@@ -40,7 +40,7 @@ func FileInfo(filePath string) (string, error) {
 		GID = -1
 	}
 
-	sb.WriteString(fmt.Sprintf("\tUID: %d\n\tGID: %d\n", UID, GID))
+	sb.WriteString(fmt.Sprintf("\tUID: %d\n\tGID: %d", UID, GID))
 	return sb.String(), nil
 }
 
