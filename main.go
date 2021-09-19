@@ -17,7 +17,7 @@ func main() {
 	for {
 		select {
 		case <-ctx.Done():
-			// application is closed via sigint/sigterm
+			log.Println("context closed...")
 			return
 		case err, ok := <-watcher.Errors:
 			if !ok {

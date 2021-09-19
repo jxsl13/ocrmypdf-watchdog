@@ -40,6 +40,8 @@ func New() *config {
 	})
 	return cfg
 }
+
+// Close does the config cleanup, like closing the watcher, etc.
 func Close() {
 	closeOnce.Do(func() {
 		_, err := configo.Unparse(cfg)
@@ -60,7 +62,6 @@ type config struct {
 	OCRMyPDFArgs       []string
 	OCRMyPDFArgsString string
 	ctx                context.Context
-	cancel             context.CancelFunc
 
 	watcher *fsnotify.Watcher
 }
@@ -183,12 +184,7 @@ func (c *config) Options() configo.Options {
 		{
 			Key: "initialize context which is closed upon an yof the signals",
 			PostParseAction: func() error {
-				c.ctx, c.cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-				return nil
-			},
-			PreUnparseAction: func() error {
-				c.cancel()
-				log.Println("closing context...")
+				c.ctx, _ = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 				return nil
 			},
 		},
