@@ -7,12 +7,17 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/jxsl13/ocrmypdf-watchdog/config"
+	"github.com/jxsl13/ocrmypdf-watchdog/internal"
 )
 
 func processFile(filePath string) {
 
-	log.Println("Processing file " + filePath)
-	printInfo(filePath)
+	cfg := config.New()
+
+	log.Println("Processing file: " + filePath)
+	internal.PrintInfo(filePath)
 
 	// first get the parts of the path: (dir)+(filename)+(.ext)
 	directory := filepath.Dir(filePath)
@@ -31,16 +36,16 @@ func processFile(filePath string) {
 	tmpFile.Close()
 	os.Remove(tmpFile.Name())
 
-	// move pdf to that rempfile's name
+	// move pdf to that tempfile's name
 	err = os.Rename(filePath, tmpFile.Name())
 	if err != nil {
-		log.Printf("Cannot rename file. Stopping here: %v", err)
+		log.Printf("Cannot rename file: %v", err)
 		return
 	}
 	// delete temp file at the end
 	defer os.Remove(tmpFile.Name())
 
-	target := cfg.Out
+	target := cfg.OutDir
 	if !strings.HasSuffix(target, "/") {
 		target = target + "/"
 	}
@@ -48,27 +53,22 @@ func processFile(filePath string) {
 	// OCR
 	targetWithoutExtension := target + filename
 	target = targetWithoutExtension + ".tmp"
-	log.Printf("Run command: %s %s %s %s\n", cfg.OCRmyPDFExecutable, cfg.OCRmyPDFArgs, tmpFile.Name(), target)
-
-	// args are the extra arguments
-	args := strings.Split(cfg.OCRmyPDFArgs, " ")
+	log.Printf("Run command: %s %s %s %s\n", cfg.OCRMyPDFExecutable, cfg.OCRMyPDFArgsString, tmpFile.Name(), target)
 
 	// add tmp file input, target output
-	args = append(args, tmpFile.Name(), target)
+	args := append(cfg.OCRMyPDFArgs, tmpFile.Name(), target)
 
 	// execute OCR
-	cmd := exec.Command(cfg.OCRmyPDFExecutable, args...)
-
+	cmd := exec.Command(cfg.OCRMyPDFExecutable, args...)
 	out, err := cmd.CombinedOutput()
-
 	log.Println(string(out))
 
 	if err != nil {
 		// error: tmp back to original name
-		log.Printf("Job finished with result %v\n", err)
+		log.Printf("Job finished failed: %v\n", err)
 		os.Rename(tmpFile.Name(), filePath)
 	} else {
-		log.Printf("Job finished with result successfully.")
+		log.Printf("Job finished successfully.")
 
 		// ok: rename tmp target to final target
 		final := targetWithoutExtension + ".pdf"
@@ -93,6 +93,6 @@ func processFile(filePath string) {
 			log.Println("Failed to change file permissions:", err)
 			return
 		}
-		printInfo(final)
+		internal.PrintInfo(final)
 	}
 }

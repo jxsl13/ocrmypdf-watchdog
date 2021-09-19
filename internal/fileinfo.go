@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -6,31 +6,14 @@ import (
 	"os"
 	"strings"
 	"syscall"
-
-	"github.com/google/uuid"
 )
 
-func generateString(prefix string) string {
-	uuid := uuid.New().String()
-
-	return prefix + strings.Replace(uuid, "-", "", -1)[:32-len(prefix)]
-}
-
-func generateRandomUser() string {
-	return generateString("u")
-}
-
-func generateRandomGroup() string {
-	return generateString("g")
-}
-
-func fileInfo(filePath string) (string, error) {
+func FileInfo(filePath string) (string, error) {
 	sb := strings.Builder{}
 
 	info, err := os.Stat(filePath)
-
 	if err != nil {
-		return "", errFileNotFound
+		return "", err
 	}
 
 	isDir := info.IsDir()
@@ -64,9 +47,9 @@ func fileInfo(filePath string) (string, error) {
 	return sb.String(), nil
 }
 
-func printInfo(filePath string) {
+func PrintInfo(filePath string) {
 
-	info, err := fileInfo(filePath)
+	info, err := FileInfo(filePath)
 	if err != nil {
 		log.Printf("Failed to open %q, %q", filePath, err)
 		return
@@ -77,13 +60,4 @@ func printInfo(filePath string) {
 	for _, line := range lines {
 		log.Println(line)
 	}
-}
-
-func contains(element string, in []string) bool {
-	for _, s := range in {
-		if s == element {
-			return true
-		}
-	}
-	return false
 }
