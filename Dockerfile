@@ -9,11 +9,6 @@ RUN go get -d && \
 
 FROM jbarlow83/ocrmypdf:latest as ocrmypdf
 
-# user id
-ENV PUID 1000
-# group id
-ENV PGID 100
-
 ENV OCRMYPDF_ARGS --pdf-renderer sandwich --tesseract-timeout 1800 --rotate-pages -l eng+fra+deu --deskew --clean --skip-text
 
 WORKDIR /app
