@@ -54,6 +54,7 @@ type config struct {
 	OutDir             string
 	UID                int // uid
 	GID                int // gid
+	Chmod              uint32
 	LogFlags           int
 	OCRMyPDFExecutable string
 	OCRMyPDFArgs       []string
@@ -137,11 +138,13 @@ func (c *config) Options() configo.Options {
 				}
 
 				// we 'need' to create a new group
-				cmd := exec.Command("addgroup", "--gid", strconv.Itoa(c.GID), generateRandomGroup())
+				group := generateRandomGroup()
+				cmd := exec.Command("addgroup", "--gid", strconv.Itoa(c.GID), group)
 				output, err := cmd.CombinedOutput()
 				if err != nil {
 					return fmt.Errorf("%w: %v", err, string(output))
 				}
+				log.Printf("added group '%s' with id %d\n", group, c.GID)
 				return nil
 			},
 		},
@@ -154,6 +157,7 @@ func (c *config) Options() configo.Options {
 					return nil
 				}
 				// we 'need' to create a new user in the container with the given group id
+				user := generateRandomUser()
 				cmd := exec.Command(
 					"adduser",
 					"--no-create-home",
@@ -162,13 +166,19 @@ func (c *config) Options() configo.Options {
 					"--gid", strconv.Itoa(c.GID),
 					"--gecos",
 					"\"\"",
-					generateRandomUser())
+					user)
 				output, err := cmd.CombinedOutput()
 				if err != nil {
 					return fmt.Errorf("%w: %v", err, string(output))
 				}
+				log.Printf("added user '%s' with id %d\n", user, c.UID)
 				return nil
 			},
+		},
+		{
+			Key:           "CHMOD",
+			DefaultValue:  "0600",
+			ParseFunction: OctalInt(&c.Chmod),
 		},
 		{
 			Key: "initialize context which is closed upon an yof the signals",
@@ -178,6 +188,7 @@ func (c *config) Options() configo.Options {
 			},
 			PreUnparseAction: func() error {
 				c.cancel()
+				log.Println("closing context...")
 				return nil
 			},
 		},
@@ -195,6 +206,10 @@ func (c *config) Options() configo.Options {
 				}
 				c.watcher = w
 				return nil
+			},
+			PreUnparseAction: func() error {
+				log.Println("closing watcher...")
+				return c.watcher.Close()
 			},
 		},
 	}

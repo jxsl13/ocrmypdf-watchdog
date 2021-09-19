@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"os"
@@ -88,7 +89,7 @@ func processFile(filePath string) {
 		}
 
 		// safe chmod
-		err = os.Chmod(final, 0600)
+		err = os.Chmod(final, fs.FileMode(cfg.Chmod))
 		if err != nil {
 			log.Println("Failed to change file permissions:", err)
 			return
