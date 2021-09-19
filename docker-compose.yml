@@ -6,6 +6,7 @@ services:
     build: .
     #image: jxsl13/ocrmypdf-watchdog
     environment: 
+      NUM_WORKRS: 3
       OCRMYPDF_ARGS: --pdf-renderer sandwich --tesseract-timeout 1800 --rotate-pages -l eng+fra+deu --deskew --clean --skip-text
     volumes: 
       - ./volumes/in:/in

@@ -41,17 +41,19 @@ func main() {
 				log.Println("events channel is closed...")
 				return
 			}
-
-			if event.Op&fsnotify.Create == fsnotify.Create {
-				filePath := event.Name
-				if !IsPDF(filePath) {
-					continue
+			// do this asynchronously
+			go func(e fsnotify.Event) {
+				if e.Op&fsnotify.Create == fsnotify.Create {
+					filePath := e.Name
+					if !IsPDF(filePath) {
+						return
+					}
+					// add file to jobs
+					jobs <- filePath
+					// print afte rthe job has been added, as the channel above might be blocking
+					log.Println(e.Op.String(), ": file:", filePath)
 				}
-				// process file
-				log.Println(event.Op.String(), ": file:", filePath)
-				jobs <- filePath
-			}
-
+			}(event)
 		}
 	}
 

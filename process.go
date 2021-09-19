@@ -2,13 +2,11 @@ package main
 
 import (
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/jxsl13/ocrmypdf-watchdog/config"
 	"github.com/jxsl13/ocrmypdf-watchdog/internal"
@@ -28,47 +26,14 @@ func processFile(filePath string) {
 
 	// first get the parts of the path: (dir)+(filename)+(.ext)
 	//directory := filepath.Dir(filePath)
-	filename := filepath.Base(filePath)                   // file name without directories
-	failedFilePath := path.Join(cfg.FailedDir, filename)  // failed dir + original file name
-	extension := filepath.Ext(filename)                   // file extension
-	filename = filename[0 : len(filename)-len(extension)] // remove file extension
-
-	target := cfg.OutDir
-	if !strings.HasSuffix(target, "/") {
-		target = target + "/"
-	}
-
-	// try to create temp file that can be used
-	tmpFile, err := ioutil.TempFile(target, filename+".*"+extension)
-	if err != nil {
-		log.Printf("Unable to create temp file: %v", err)
-		return
-	}
-
-	// close file and delete it
-	tmpFile.Close()
-	err = os.Remove(tmpFile.Name())
-	if err != nil {
-		log.Printf("failed to remove file %s\n", tmpFile.Name())
-	}
-
-	// move pdf to that tempfile's location
-	err = internal.Move(filePath, tmpFile.Name())
-	if err != nil {
-		log.Printf("Cannot move file: %v", err)
-		return
-	}
-	// delete temp file at the end
-	defer os.Remove(tmpFile.Name())
-
-	// OCR
-	targetWithoutExtension := target + filename
-	target = targetWithoutExtension + ".tmp"
+	filename := filepath.Base(filePath)                  // file name without directories
+	failedFilePath := path.Join(cfg.FailedDir, filename) // failed dir + original file name
+	targetFileName := path.Join(cfg.OutDir, filename)
 
 	// add tmp file input, target output
-	args := append(cfg.OCRMyPDFArgs, tmpFile.Name(), target)
 
 	// execute OCR
+	args := append(cfg.OCRMyPDFArgs, filePath, targetFileName)
 	cmd := exec.Command(cfg.OCRMyPDFExecutable, args...)
 	out, err := cmd.CombinedOutput()
 	log.Println(string(out))
@@ -85,40 +50,34 @@ func processFile(filePath string) {
 			}
 			return
 		}
-		err = internal.Move(tmpFile.Name(), failedFilePath)
+		err = internal.Move(filePath, failedFilePath)
 		if err != nil {
-			log.Printf("failed to move file from %s to %s\n", tmpFile.Name(), failedFilePath)
+			log.Printf("failed to move file from %s to %s\n", filePath, failedFilePath)
 		}
 	} else {
 		log.Println("Job finished successfully.")
-
-		// ok: rename tmp target to final target
-		final := targetWithoutExtension + ".pdf"
-
-		// OCR'ed target file is renamed to final file
-		err := os.Rename(target, final)
-		if err != nil {
-			log.Printf("failed to move file from %s to %s\n", target, final)
-			return
-		}
 
 		// set external permissions to user's UID and GID
 		// the problem that also the Synology support was not able to solve, is that
 		// the Synology Drive app cannot properly work with docker files.
 		// this means that a scanner will neccessarily have to use the specific
 		// user's access rights in order to properly copy those pemrissions over.
-		err = os.Chown(final, uid, gid)
+		err = os.Chown(targetFileName, uid, gid)
 		if err != nil {
 			log.Println("Failed to change owner:", err)
 			return
 		}
 
 		// safe chmod
-		err = os.Chmod(final, perm)
+		err = os.Chmod(targetFileName, perm)
 		if err != nil {
 			log.Println("Failed to change file permissions:", err)
 			return
 		}
-		internal.PrintInfo(final)
+		internal.PrintInfo(targetFileName)
+		err := os.Remove(filePath)
+		if err != nil {
+			log.Printf("failed to remove: %s: %v", filePath, err)
+		}
 	}
 }
