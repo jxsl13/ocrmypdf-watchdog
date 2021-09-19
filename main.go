@@ -18,18 +18,18 @@ func main() {
 		select {
 		case <-ctx.Done():
 			// application is closed via sigint/sigterm
-			break
+			return
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				log.Println("errors channel is closed...")
-				break
+				return
 			}
 			log.Println("error:", err)
 
 		case event, ok := <-watcher.Events:
 			if !ok {
 				log.Println("events channel is closed...")
-				break
+				return
 			}
 
 			log.Println("event:", event)
