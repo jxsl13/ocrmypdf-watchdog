@@ -7,10 +7,19 @@ import (
 	"github.com/jxsl13/ocrmypdf-watchdog/config"
 )
 
+var (
+	jobs chan string
+)
+
 func main() {
 	log.Println("starting ocrmypdf-watchdog...")
 	cfg := config.New()
 	defer config.Close()
+
+	// shared file path channel
+	jobs = make(chan string, cfg.NumWorkers)
+	// start x worker routines
+	startWorkers(cfg.NumWorkers, jobs)
 
 	watcher := cfg.Watcher()
 	ctx := cfg.Context()
@@ -33,8 +42,6 @@ func main() {
 				return
 			}
 
-			log.Println("event:", event)
-
 			if event.Op&fsnotify.Write == fsnotify.Write ||
 				event.Op&fsnotify.Create == fsnotify.Create {
 
@@ -45,7 +52,7 @@ func main() {
 					continue
 				}
 				// process file
-				processFile(filePath)
+				jobs <- filePath
 			}
 
 		}

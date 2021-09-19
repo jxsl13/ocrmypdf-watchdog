@@ -70,6 +70,8 @@ type config struct {
 
 	ctx     context.Context
 	watcher *fsnotify.Watcher
+
+	NumWorkers int // number of goroutines processing files
 }
 
 // Context may be used to check the moment when the application is closed
@@ -218,6 +220,17 @@ func (c *config) Options() configo.Options {
 			PreUnparseAction: func() error {
 				log.Println("closing watcher...")
 				return c.watcher.Close()
+			},
+		},
+		{
+			Key:           "NUM_WORKERS",
+			DefaultValue:  "1",
+			ParseFunction: parsers.Int(&c.NumWorkers),
+			PostParseAction: func() error {
+				if c.NumWorkers <= 0 {
+					c.NumWorkers = 1
+				}
+				return nil
 			},
 		},
 	}

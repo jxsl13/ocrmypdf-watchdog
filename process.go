@@ -54,7 +54,6 @@ func processFile(filePath string) {
 	// OCR
 	targetWithoutExtension := target + filename
 	target = targetWithoutExtension + ".tmp"
-	log.Printf("Run command: %s %s %s %s\n", cfg.OCRMyPDFExecutable, cfg.OCRMyPDFArgsString, tmpFile.Name(), target)
 
 	// add tmp file input, target output
 	args := append(cfg.OCRMyPDFArgs, tmpFile.Name(), target)
@@ -69,7 +68,7 @@ func processFile(filePath string) {
 		log.Printf("Job finished failed: %v\n", err)
 		os.Rename(tmpFile.Name(), filePath)
 	} else {
-		log.Printf("Job finished successfully.")
+		log.Println("Job finished successfully.")
 
 		// ok: rename tmp target to final target
 		final := targetWithoutExtension + ".pdf"

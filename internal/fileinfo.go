@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -25,11 +26,7 @@ func FileInfo(filePath string) (string, error) {
 	sb.WriteString(fmt.Sprintf("%q\n", filePath))
 
 	sb.WriteString("\tPerm: ")
-	sb.WriteString(fmt.Sprint(info.Mode().Perm()))
-	sb.WriteString("\n")
-
-	sb.WriteString("\tSys: ")
-	sb.WriteString(fmt.Sprint(info.Sys()))
+	sb.WriteString(strconv.FormatUint(uint64(info.Mode().Perm()), 8))
 	sb.WriteString("\n")
 
 	var UID, GID int
@@ -56,7 +53,6 @@ func PrintInfo(filePath string) {
 	}
 
 	lines := strings.Split(info, "\n")
-
 	for _, line := range lines {
 		log.Println(line)
 	}
