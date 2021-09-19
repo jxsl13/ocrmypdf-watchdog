@@ -15,4 +15,8 @@ build:
 clean:
 	docker system prune
 
+push:
+	docker build -t jxsl13/ocrmypdf-watchdog:latest .
+	docker push jxsl13/ocrmypdf-watchdog:latest
+
 	

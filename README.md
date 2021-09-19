@@ -24,7 +24,7 @@ You will be *WARNED* before continuing with the cleanup.
 
 ## What currently works
 
-*Write* and *Create* events trigger the new file in the `in` directory to be checked for their file type.
+*Create* and events trigger the new file in the `in` directory to be checked for their file type.
 Only proper PDF files are actually OCR'ed and then put into the target `out` directory.
 
 
