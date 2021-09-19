@@ -1,5 +1,6 @@
 .vscode/settings.json
 ocrmypdf-watchdog
-volumes/**.pdf
+volumes/in/*.pdf
+volumes/out/*.pdf
 main
 .DS_Store
