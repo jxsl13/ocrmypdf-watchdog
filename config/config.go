@@ -145,7 +145,6 @@ func (c *config) Options() configo.Options {
 				if err != nil {
 					return fmt.Errorf("%w: %v", err, string(output))
 				}
-				log.Printf("added group '%s' with id %d\n", group, c.GID)
 				return nil
 			},
 		},
@@ -172,7 +171,6 @@ func (c *config) Options() configo.Options {
 				if err != nil {
 					return fmt.Errorf("%w: %v", err, string(output))
 				}
-				log.Printf("added user '%s' with id %d\n", user, c.UID)
 				return nil
 			},
 		},

@@ -8,12 +8,13 @@ import (
 )
 
 func main() {
+	log.Println("starting ocrmypdf-watchdog...")
 	cfg := config.New()
 	defer config.Close()
 
 	watcher := cfg.Watcher()
 	ctx := cfg.Context()
-
+	log.Println("started ocrmypdf-watchdog")
 	for {
 		select {
 		case <-ctx.Done():
