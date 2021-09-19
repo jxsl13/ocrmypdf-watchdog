@@ -35,7 +35,6 @@ func IsPDF(filePath string) bool {
 		return false
 	}
 
-	log.Printf("content type of %q is %q", filePath, contentType)
 	return contentType == "application/pdf"
 }
 
