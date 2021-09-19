@@ -22,10 +22,13 @@ var (
 	cfg       = (*config)(nil)
 	once      = sync.Once{}
 	closeOnce = sync.Once{}
+
+	// found in /ect/passwd inside of the container
 	knownUIDs = []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 34, 38, 39, 41, 100, 65534}
 	knownGIDs = []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 15, 20, 21, 22, 24, 25, 26, 27, 29, 30, 33, 34, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 50, 60, 100, 65534}
 )
 
+// New creates a config singleton that's only created once
 func New() *config {
 	if cfg != nil {
 		return cfg

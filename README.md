@@ -1,23 +1,17 @@
-# OCRmyPDF-watchdog
+# ocrmypdf-watchdog
 
-Is the combination of two projects that both seem not to yet work as intended on my Synology NAS.
-The Synology NAS provides a `scans/user` directory that gets the scanned PDFs.
-All users currently get their own container that does the optical image recognition.
-The user is supposed to be able to see his OCR'ed documents in their respective `/homes/user/Drive/Documents` directory.
-The problems that need to be tackled are the ownership and usergroups that those resulting files get when put into those Synology Drive folders.
+This is a wrapper around the python ocrmypdf toolkit that runts in a docker container.
 
-## Inspirating projects
 
-- reactive, kind of interrupt based approach in Node.js: https://github.com/pedropombeiro/OCRmyPDF-watchdog/tree/master-watchdog  
-- proactive, polling approach written in Go: https://github.com/bernmic/ocrmypdf-watchdog  
+## Requirements 
 
-The ractive approach should in theory use less CPU and should only get going when the scan directories actually contain a new legitimate PDF file.
+- `docker`
 
 ## Setup
 
-Modify the `docker-compose.yml` file to have your needed volumes mounted to the correct host directory and `PUID`(UID of the output file) as well as the `PGID` (GID of the output file) set to the owner of the `/homes/user/Drive/Documents` folder.
+Modify the `docker-compose.yml` file to have your needed volumes mounted to the correct host directory and `PUID`(UID of the output file) as well as the `PGID` (GID of the output file) set to whatever your user's uid/gid are.
 
-Afterwards you simply need to run inside this directory:
+## Startup
 
 ```shell
 make
@@ -33,20 +27,26 @@ You will be *WARNED* before continuing with the cleanup.
 *Write* and *Create* events trigger the new file in the `in` directory to be checked for their file type.
 Only proper PDF files are actually OCR'ed and then put into the target `out` directory.
 
-## Problems
 
-Contacting the Synology support resulted in the Synology Drive app not actually supporting such constllations, making it impossible to give those files the proper permissions from within the docker contains (FOR NOW).
-I think it might be possible if the scanner actually uses the target user's credentials (not really what I hoped for) in order to scan documents into a folder that is owned by that target user.
-
-## TODO
-
-- Needs to be tested on the actual Synology Diskstation target.
-- Check if permissions are correct
-- Support either multiple volumes or one volume with individual subfolders instead of having to have one container per user(kinda hefty with its 500MB).
-
-## Additional Environment variables
+## Environment variables
 
 Additional environment variables that are not necessarily needed.
+
+### OCRMYPDF_ARGS
+
+This environment variable may contain all available flags that the `ocrmypdf` tool provides.
+
+### PUID
+
+User ID of the resulting OCR'd file
+
+### PGID
+
+Group ID of the resulting OCR'd file.
+
+### CHMOD
+
+File permissions of the resulting file.
 
 ### LOG_FLAGS
 
